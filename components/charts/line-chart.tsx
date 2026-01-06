@@ -9,6 +9,9 @@ interface LineChartProps {
 }
 
 export function LineChart({ data, valueFormatter = (v) => v.toString(), color = "#cd995c" }: LineChartProps) {
+  // Detect if data uses year format (4-digit) vs month format (YYYY-MM)
+  const isYearFormat = data.length > 0 && /^\d{4}$/.test(data[0].month);
+
   return (
     <ResponsiveContainer width="100%" height={200}>
       <RechartsLineChart data={data} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
@@ -16,7 +19,7 @@ export function LineChart({ data, valueFormatter = (v) => v.toString(), color = 
         <XAxis
           dataKey="month"
           tick={{ fontSize: 10, fill: "#32373c" }}
-          tickFormatter={(value) => value.slice(5)} // Show only MM
+          tickFormatter={(value) => isYearFormat ? value : value.slice(5)}
         />
         <YAxis
           tick={{ fontSize: 10, fill: "#32373c" }}
