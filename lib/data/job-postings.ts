@@ -84,7 +84,7 @@ const customerServiceRepData: JobPostingsData = {
   ],
 };
 
-export function getJobPostingsData(occupation: string): JobPostingsData | null {
+export function getJobPostingsData(occupation: string): JobPostingsData {
   // For the prototype, return sample data for known occupation
   if (
     occupation.toLowerCase().includes("customer service") ||

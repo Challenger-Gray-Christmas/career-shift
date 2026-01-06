@@ -190,14 +190,10 @@ const sampleSkillGap: SkillGapData = {
 
 export function getCareerPathwaysData(
   occupationId: string
-): CareerPathwaysData | null {
-  // For the prototype, return sample data for known occupation
-  if (occupationId === "23111410" || occupationId.toLowerCase().includes("data scientist")) {
-    return dataScientistPathways;
-  }
-
-  // Return null for unknown occupations
-  return null;
+): CareerPathwaysData {
+  // For the prototype, return sample data (Data Scientist pathways)
+  // In production, this would fetch real data based on occupationId
+  return dataScientistPathways;
 }
 
 export function getSkillGapData(
