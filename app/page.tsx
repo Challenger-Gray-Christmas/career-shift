@@ -14,8 +14,24 @@ export default function Home() {
         </p>
       </div>
 
-      <div className="mx-auto mt-12 grid max-w-4xl gap-6 md:grid-cols-2">
+      <div className="mx-auto mt-12 grid max-w-5xl gap-6 md:grid-cols-3">
         <Card className="border-l-4 border-l-gold hover:shadow-lg transition-shadow">
+          <CardHeader>
+            <CardTitle className="text-charcoal">Career Assessment</CardTitle>
+            <CardDescription>
+              Get personalized career transition recommendations based on your skills and experience.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link href="/assess">
+              <Button className="w-full bg-gold hover:bg-gold/90 text-white">
+                Start Assessment
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card className="border-l-4 border-l-charcoal hover:shadow-lg transition-shadow">
           <CardHeader>
             <CardTitle className="text-charcoal">Explore Job Market</CardTitle>
             <CardDescription>
@@ -31,7 +47,7 @@ export default function Home() {
           </CardContent>
         </Card>
 
-        <Card className="border-l-4 border-l-gold hover:shadow-lg transition-shadow">
+        <Card className="border-l-4 border-l-charcoal hover:shadow-lg transition-shadow">
           <CardHeader>
             <CardTitle className="text-charcoal">Plan Career Transition</CardTitle>
             <CardDescription>
