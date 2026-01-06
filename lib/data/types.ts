@@ -78,3 +78,27 @@ export interface SkillGapData {
   destination: { id: string; name: string };
   skillGap: SkillGapItem[];
 }
+
+export interface YearlyProjection {
+  year: number;
+  jobs: number;
+}
+
+export interface RegionalProjection {
+  county: string;
+  countyName: string;
+  jobs2024: number;
+  jobs2030: number;
+  percentChange: number;
+}
+
+export interface ProjectedOutlookData {
+  occupation: string;
+  national: {
+    timeseries: YearlyProjection[];
+    startJobs: number;
+    endJobs: number;
+    percentChange: number;
+  };
+  regional: RegionalProjection[];
+}
