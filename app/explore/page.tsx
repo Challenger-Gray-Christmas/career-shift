@@ -23,7 +23,7 @@ export default function ExplorePage() {
       <div className="mb-8">
         <h1 className="text-3xl font-bold text-charcoal">Job Market Explorer</h1>
         <div className="mt-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-4">
             <OccupationSelect
               value={selectedOccupation}
               onValueChange={setSelectedOccupation}

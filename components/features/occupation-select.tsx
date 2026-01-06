@@ -17,7 +17,7 @@ interface OccupationSelectProps {
 export function OccupationSelect({ value, onValueChange, occupations }: OccupationSelectProps) {
   return (
     <Select value={value} onValueChange={onValueChange}>
-      <SelectTrigger className="w-[320px]">
+      <SelectTrigger className="w-full sm:w-[320px]">
         <SelectValue placeholder="Select an occupation" />
       </SelectTrigger>
       <SelectContent>

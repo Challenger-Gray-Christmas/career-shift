@@ -7,11 +7,11 @@ export function Navigation() {
         <Link href="/" className="text-xl font-bold text-charcoal">
           Career Shift
         </Link>
-        <div className="flex gap-6">
-          <Link href="/explore" className="text-charcoal hover:text-gold transition-colors">
+        <div className="flex gap-4 sm:gap-6">
+          <Link href="/explore" className="text-sm sm:text-base text-charcoal hover:text-gold transition-colors">
             Job Explorer
           </Link>
-          <Link href="/pathways" className="text-charcoal hover:text-gold transition-colors">
+          <Link href="/pathways" className="text-sm sm:text-base text-charcoal hover:text-gold transition-colors">
             Career Pathways
           </Link>
         </div>
