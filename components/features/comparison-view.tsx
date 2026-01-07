@@ -58,7 +58,7 @@ export function ComparisonView({ match }: ComparisonViewProps) {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="h-32">
+          <div className="h-52">
             <LineChart
               data={outlookData}
               valueFormatter={(v) => `${v.toFixed(0)}%`}
