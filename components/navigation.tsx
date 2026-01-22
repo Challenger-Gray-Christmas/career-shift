@@ -21,9 +21,6 @@ export function Navigation() {
           <Link href="/explore" className="text-sm sm:text-base text-charcoal hover:text-gold transition-colors">
             Job Explorer
           </Link>
-          <Link href="/pathways" className="text-sm sm:text-base text-charcoal hover:text-gold transition-colors">
-            Career Pathways
-          </Link>
         </div>
       </nav>
     </header>
