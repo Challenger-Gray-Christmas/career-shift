@@ -1,15 +1,18 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { LineChart } from "@/components/charts/line-chart";
+import { MarketDataGrid } from "@/components/features/market-data-grid";
 import { TrendingUp, TrendingDown, Minus, Check, BookOpen, ExternalLink } from "lucide-react";
-import type { CareerMatch } from "@/lib/data/types";
+import type { CareerMatch, JobPostingsData, ProjectedOutlookData } from "@/lib/data/types";
 import { cn } from "@/lib/utils";
 
 interface ComparisonViewProps {
   match: CareerMatch;
+  jobPostingsData?: JobPostingsData;
+  outlookData?: ProjectedOutlookData;
 }
 
-export function ComparisonView({ match }: ComparisonViewProps) {
+export function ComparisonView({ match, jobPostingsData, outlookData }: ComparisonViewProps) {
   const OutlookIcon = match.outlookPercent > 2
     ? TrendingUp
     : match.outlookPercent < -2
@@ -25,7 +28,7 @@ export function ComparisonView({ match }: ComparisonViewProps) {
   const formatSalary = (value: number) => `$${value.toLocaleString()}`;
 
   // Generate simple outlook trend data
-  const outlookData = Array.from({ length: 7 }, (_, i) => ({
+  const outlookChartData = Array.from({ length: 7 }, (_, i) => ({
     month: (2024 + i).toString(),
     value: 100 + (match.outlookPercent / 6) * i,
   }));
@@ -60,7 +63,7 @@ export function ComparisonView({ match }: ComparisonViewProps) {
         <CardContent>
           <div className="h-52">
             <LineChart
-              data={outlookData}
+              data={outlookChartData}
               valueFormatter={(v) => `${v.toFixed(0)}%`}
               color={match.outlookPercent >= 0 ? "#22c55e" : "#ef4444"}
             />
@@ -137,17 +140,16 @@ export function ComparisonView({ match }: ComparisonViewProps) {
         </CardContent>
       </Card>
 
-      {/* Bridge the Gap Summary */}
-      <Card className="bg-gold/5 border-gold">
-        <CardContent className="p-4">
-          <p className="text-charcoal">
-            <span className="font-semibold">Bridge the Gap:</span>{" "}
-            With {match.skillsGap.length} targeted course{match.skillsGap.length !== 1 ? "s" : ""},
-            you could be transition-ready. Your {match.transferableSkills.length} transferable skills
-            give you a strong foundation for this role.
-          </p>
-        </CardContent>
-      </Card>
+      {/* Market Data - only show if data provided */}
+      {jobPostingsData && outlookData && (
+        <>
+          <h2 className="text-lg font-semibold text-charcoal mt-8">Market Data for {match.title}</h2>
+          <MarketDataGrid
+            jobPostingsData={jobPostingsData}
+            outlookData={outlookData}
+          />
+        </>
+      )}
     </div>
   );
 }
