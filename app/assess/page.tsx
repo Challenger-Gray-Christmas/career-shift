@@ -1,18 +1,23 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getQuestionnaireProfile } from "@/lib/data/questionnaire-data";
 import { getCareerMatches } from "@/lib/data/career-matches";
 import { getProjectedOutlookData } from "@/lib/data/projected-outlook";
+import { getJobPostingsData } from "@/lib/data/job-postings";
+import { getCareerPathwaysData, getSkillGapData } from "@/lib/data/career-pathways";
 import { ProfileSummaryCard } from "@/components/features/profile-summary-card";
 import { CareerMatchCard } from "@/components/features/career-match-card";
 import { ComparisonView } from "@/components/features/comparison-view";
-import { NationalOutlookCard } from "@/components/features/national-outlook-card";
-import { RegionalOutlookCard } from "@/components/features/regional-outlook-card";
+import { MarketDataGrid } from "@/components/features/market-data-grid";
+import { CurrentRoleCard } from "@/components/features/current-role-card";
+import { PathwayCard } from "@/components/features/pathway-card";
+import { SkillGapPanel } from "@/components/features/skill-gap-panel";
 import { Loader2, CheckCircle2 } from "lucide-react";
-import type { CareerMatch } from "@/lib/data/types";
+import type { CareerMatch, PathwayJob } from "@/lib/data/types";
 import { cn } from "@/lib/utils";
 
 type AnalysisStep = {
@@ -20,12 +25,19 @@ type AnalysisStep = {
   status: "pending" | "loading" | "complete";
 };
 
-type Tab = "profile" | "current-role" | "career-matches" | "comparison";
+type Tab = "profile" | "current-role" | "career-matches" | "career-pathways" | "comparison";
 
-export default function AssessPage() {
-  const [phase, setPhase] = useState<"questionnaire" | "analyzing" | "results">("questionnaire");
-  const [activeTab, setActiveTab] = useState<Tab>("profile");
-  const [selectedMatch, setSelectedMatch] = useState<CareerMatch | null>(null);
+type SelectedItem =
+  | { type: "match"; data: CareerMatch }
+  | { type: "pathway"; data: PathwayJob };
+
+function AssessPageContent() {
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab") as Tab | null;
+
+  const [phase, setPhase] = useState<"analyzing" | "results">("analyzing");
+  const [activeTab, setActiveTab] = useState<Tab>(tabParam || "profile");
+  const [selectedItem, setSelectedItem] = useState<SelectedItem | null>(null);
   const [analysisSteps, setAnalysisSteps] = useState<AnalysisStep[]>([
     { label: "Evaluating current role outlook", status: "pending" },
     { label: "Finding career matches", status: "pending" },
@@ -35,12 +47,16 @@ export default function AssessPage() {
   const profile = getQuestionnaireProfile();
   const careerMatches = getCareerMatches();
   const outlookData = getProjectedOutlookData();
+  const jobPostingsData = getJobPostingsData(profile.currentRole);
+  const pathwaysData = getCareerPathwaysData("23111410");
 
-  const handleAnalyze = () => {
-    setPhase("analyzing");
+  const skillGapData = selectedItem?.type === "pathway"
+    ? getSkillGapData(pathwaysData.id, selectedItem.data.id)
+    : null;
 
-    // Simulate progressive analysis steps
-    const stepDuration = 1000;
+  // Auto-start analyzing animation on mount
+  useEffect(() => {
+    const stepDuration = 800;
 
     analysisSteps.forEach((_, index) => {
       setTimeout(() => {
@@ -62,49 +78,28 @@ export default function AssessPage() {
       }, (index + 1) * stepDuration - 100);
     });
 
-    // Transition to results after all steps
     setTimeout(() => {
       setPhase("results");
-    }, analysisSteps.length * stepDuration + 500);
-  };
+    }, analysisSteps.length * stepDuration + 300);
+  }, []);
 
   const handleSelectMatch = (match: CareerMatch) => {
-    setSelectedMatch(match);
+    setSelectedItem({ type: "match", data: match });
+    setActiveTab("comparison");
+  };
+
+  const handleSelectPathway = (job: PathwayJob) => {
+    setSelectedItem({ type: "pathway", data: job });
     setActiveTab("comparison");
   };
 
   const tabs: { id: Tab; label: string }[] = [
-    { id: "profile", label: "Your Profile" },
+    { id: "profile", label: "Client Profile" },
     { id: "current-role", label: "Current Role" },
     { id: "career-matches", label: "Career Matches" },
+    { id: "career-pathways", label: "Career Pathways" },
     { id: "comparison", label: "Comparison" },
   ];
-
-  // Questionnaire Summary Phase
-  if (phase === "questionnaire") {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-charcoal">Career Assessment</h1>
-          <p className="mt-2 text-gray-600">
-            Review your profile and discover personalized career transition opportunities.
-          </p>
-        </div>
-
-        <ProfileSummaryCard profile={profile} />
-
-        <div className="mt-8 flex justify-center">
-          <Button
-            size="lg"
-            className="bg-gold hover:bg-gold/90 text-white px-8"
-            onClick={handleAnalyze}
-          >
-            Analyze My Career
-          </Button>
-        </div>
-      </div>
-    );
-  }
 
   // Analyzing Phase
   if (phase === "analyzing") {
@@ -180,22 +175,10 @@ export default function AssessPage() {
       {activeTab === "profile" && <ProfileSummaryCard profile={profile} />}
 
       {activeTab === "current-role" && (
-        <div className="space-y-6">
-          <div className="grid gap-6 md:grid-cols-2">
-            <NationalOutlookCard data={outlookData.national} />
-            <RegionalOutlookCard data={outlookData.regional} />
-          </div>
-          <Card className="bg-amber-50 border-amber-200">
-            <CardContent className="p-4">
-              <p className="text-charcoal">
-                <span className="font-semibold">Insight:</span>{" "}
-                Based on the projected {Math.abs(outlookData.national.percentChange)}% decline in
-                Customer Service Representative roles by 2030, now may be a good time to explore
-                adjacent career paths that leverage your existing skills.
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+        <MarketDataGrid
+          jobPostingsData={jobPostingsData}
+          outlookData={outlookData}
+        />
       )}
 
       {activeTab === "career-matches" && (
@@ -209,31 +192,113 @@ export default function AssessPage() {
                 key={match.id}
                 match={match}
                 onClick={() => handleSelectMatch(match)}
-                isSelected={selectedMatch?.id === match.id}
+                isSelected={selectedItem?.type === "match" && selectedItem.data.id === match.id}
               />
             ))}
           </div>
         </div>
       )}
 
+      {activeTab === "career-pathways" && (
+        <div className="space-y-6">
+          <CurrentRoleCard data={pathwaysData} />
+
+          <div className="grid gap-6 md:grid-cols-2">
+            <div>
+              <h2 className="mb-4 text-lg font-semibold text-charcoal">
+                Where You Could Go
+              </h2>
+              <div className="space-y-3">
+                {pathwaysData.advancementJobs.slice(0, 6).map((job) => (
+                  <PathwayCard
+                    key={job.id}
+                    job={job}
+                    onClick={() => handleSelectPathway(job)}
+                    isSelected={selectedItem?.type === "pathway" && selectedItem.data.id === job.id}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <h2 className="mb-4 text-lg font-semibold text-charcoal">
+                Where People Come From
+              </h2>
+              <div className="space-y-3">
+                {pathwaysData.feederJobs.slice(0, 6).map((job) => (
+                  <PathwayCard
+                    key={job.id}
+                    job={job}
+                    onClick={() => handleSelectPathway(job)}
+                    isSelected={selectedItem?.type === "pathway" && selectedItem.data.id === job.id}
+                  />
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {activeTab === "comparison" && (
-        selectedMatch ? (
-          <ComparisonView match={selectedMatch} />
+        selectedItem ? (
+          selectedItem.type === "match" ? (
+            <ComparisonView
+              match={selectedItem.data}
+              jobPostingsData={jobPostingsData}
+              outlookData={outlookData}
+            />
+          ) : (
+            <div className="space-y-6">
+              <SkillGapPanel data={skillGapData!} />
+              <MarketDataGrid
+                jobPostingsData={jobPostingsData}
+                outlookData={outlookData}
+              />
+            </div>
+          )
         ) : (
           <Card className="border-dashed">
             <CardContent className="p-8 text-center text-gray-500">
-              <p>Select a career match to see detailed comparison</p>
-              <Button
-                variant="outline"
-                className="mt-4"
-                onClick={() => setActiveTab("career-matches")}
-              >
-                View Career Matches
-              </Button>
+              <p>Select a career from Career Matches or Career Pathways to see detailed analysis</p>
+              <div className="mt-4 flex justify-center gap-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setActiveTab("career-matches")}
+                >
+                  View Career Matches
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => setActiveTab("career-pathways")}
+                >
+                  View Career Pathways
+                </Button>
+              </div>
             </CardContent>
           </Card>
         )
       )}
     </div>
+  );
+}
+
+export default function AssessPage() {
+  return (
+    <Suspense fallback={
+      <div className="container mx-auto px-4 py-8">
+        <div className="mx-auto max-w-md mt-20">
+          <Card>
+            <CardHeader className="text-center">
+              <CardTitle className="text-xl text-charcoal">Loading...</CardTitle>
+            </CardHeader>
+            <CardContent className="flex justify-center">
+              <Loader2 className="h-8 w-8 animate-spin text-gold" />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    }>
+      <AssessPageContent />
+    </Suspense>
   );
 }
