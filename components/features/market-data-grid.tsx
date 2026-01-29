@@ -22,26 +22,20 @@ export function MarketDataGrid({
   return (
     <div className="space-y-6">
       {showOutlook && (
-        <div className="grid gap-6 md:grid-cols-2">
+        <>
           <NationalOutlookCard data={outlookData.national} />
           <RegionalOutlookCard data={outlookData.regional} />
-        </div>
+        </>
       )}
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <SalaryTrendCard data={jobPostingsData.salaryTrend} />
-        <PostingsTrendCard data={jobPostingsData.postingsTrend} />
-      </div>
+      <SalaryTrendCard data={jobPostingsData.salaryTrend} />
+      <PostingsTrendCard data={jobPostingsData.postingsTrend} />
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <RegionsCard data={jobPostingsData.topRegions} />
-        <CompaniesCard data={jobPostingsData.topCompanies} />
-      </div>
+      <RegionsCard data={jobPostingsData.topRegions} />
+      <CompaniesCard data={jobPostingsData.topCompanies} />
 
-      <div className="grid gap-6 md:grid-cols-2">
-        <EducationCard data={jobPostingsData.educationRequirements} />
-        <TitlesCard data={jobPostingsData.topTitles} />
-      </div>
+      <EducationCard data={jobPostingsData.educationRequirements} />
+      <TitlesCard data={jobPostingsData.topTitles} />
     </div>
   );
 }

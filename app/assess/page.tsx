@@ -183,10 +183,18 @@ function AssessPageContent() {
       {activeTab === "profile" && <ProfileSummaryCard profile={profile} />}
 
       {activeTab === "current-role" && (
-        <MarketDataGrid
-          jobPostingsData={jobPostingsData}
-          outlookData={outlookData}
-        />
+        <div className="space-y-4">
+          <CurrentRoleCard
+            data={pathwaysData}
+            regions={jobPostingsData.topRegions}
+            selectedRegion={selectedRegion}
+            onRegionChange={setSelectedRegion}
+          />
+          <MarketDataGrid
+            jobPostingsData={jobPostingsData}
+            outlookData={outlookData}
+          />
+        </div>
       )}
 
       {activeTab === "career-matches" && (
