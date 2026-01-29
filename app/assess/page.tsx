@@ -15,6 +15,7 @@ import { CareerMatchListItem } from "@/components/features/career-match-list-ite
 import { CareerMatchDetail } from "@/components/features/career-match-detail";
 import { PathwayListItem } from "@/components/features/pathway-list-item";
 import { PathwayDetail } from "@/components/features/pathway-detail";
+import { PathwaySectionCard } from "@/components/features/pathway-section-card";
 import { OccupationSearch } from "@/components/features/occupation-search";
 import { MarketDataGridSkeleton } from "@/components/features/market-data-grid-skeleton";
 import { MasterDetailSkeleton } from "@/components/features/master-detail-skeleton";
@@ -217,33 +218,27 @@ function AssessPageContent() {
               <div className="grid gap-6 lg:grid-cols-5">
                 {/* Master Panel - List */}
                 <div className="lg:col-span-2 space-y-4">
-                  <div>
-                    <p className="text-sm font-medium text-charcoal mb-2">Where You Could Go</p>
-                    <div className="space-y-2">
-                      {pathwaysData.advancementJobs.slice(0, 6).map((job) => (
-                        <PathwayListItem
-                          key={job.id}
-                          job={job}
-                          isSelected={selectedItem?.type === "pathway" && selectedItem.data.id === job.id}
-                          onClick={() => handleSelectPathway(job)}
-                        />
-                      ))}
-                    </div>
-                  </div>
+                  <PathwaySectionCard type="advancement">
+                    {pathwaysData.advancementJobs.slice(0, 6).map((job) => (
+                      <PathwayListItem
+                        key={job.id}
+                        job={job}
+                        isSelected={selectedItem?.type === "pathway" && selectedItem.data.id === job.id}
+                        onClick={() => handleSelectPathway(job)}
+                      />
+                    ))}
+                  </PathwaySectionCard>
 
-                  <div>
-                    <p className="text-sm font-medium text-charcoal mb-2">Where People Come From</p>
-                    <div className="space-y-2">
-                      {pathwaysData.feederJobs.slice(0, 6).map((job) => (
-                        <PathwayListItem
-                          key={job.id}
-                          job={job}
-                          isSelected={selectedItem?.type === "pathway" && selectedItem.data.id === job.id}
-                          onClick={() => handleSelectPathway(job)}
-                        />
-                      ))}
-                    </div>
-                  </div>
+                  <PathwaySectionCard type="feeder">
+                    {pathwaysData.feederJobs.slice(0, 6).map((job) => (
+                      <PathwayListItem
+                        key={job.id}
+                        job={job}
+                        isSelected={selectedItem?.type === "pathway" && selectedItem.data.id === job.id}
+                        onClick={() => handleSelectPathway(job)}
+                      />
+                    ))}
+                  </PathwaySectionCard>
                 </div>
 
                 {/* Detail Panel */}
