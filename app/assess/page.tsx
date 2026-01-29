@@ -37,7 +37,6 @@ function AssessPageContent() {
   const [phase, setPhase] = useState<"analyzing" | "results">("analyzing");
   const [activeTab, setActiveTab] = useState<Tab>(tabParam || "profile");
   const [selectedItem, setSelectedItem] = useState<SelectedItem | null>(null);
-  const [selectedRegion, setSelectedRegion] = useState<string>("national");
   const [analysisSteps, setAnalysisSteps] = useState<AnalysisStep[]>([
     { label: "Evaluating current role outlook", status: "pending" },
     { label: "Finding career matches", status: "pending" },
@@ -184,12 +183,7 @@ function AssessPageContent() {
 
       {activeTab === "current-role" && (
         <div className="space-y-4">
-          <CurrentRoleCard
-            data={pathwaysData}
-            regions={jobPostingsData.topRegions}
-            selectedRegion={selectedRegion}
-            onRegionChange={setSelectedRegion}
-          />
+          <CurrentRoleCard data={pathwaysData} />
           <MarketDataGrid
             jobPostingsData={jobPostingsData}
             outlookData={outlookData}
@@ -199,12 +193,7 @@ function AssessPageContent() {
 
       {activeTab === "career-matches" && (
         <div className="space-y-4">
-          <CurrentRoleCard
-            data={pathwaysData}
-            regions={jobPostingsData.topRegions}
-            selectedRegion={selectedRegion}
-            onRegionChange={setSelectedRegion}
-          />
+          <CurrentRoleCard data={pathwaysData} />
 
           <div className="grid gap-6 lg:grid-cols-5">
             {/* Master Panel - List */}
@@ -242,12 +231,7 @@ function AssessPageContent() {
 
       {activeTab === "career-pathways" && (
         <div className="space-y-4">
-          <CurrentRoleCard
-            data={pathwaysData}
-            regions={jobPostingsData.topRegions}
-            selectedRegion={selectedRegion}
-            onRegionChange={setSelectedRegion}
-          />
+          <CurrentRoleCard data={pathwaysData} />
 
           <div className="grid gap-6 lg:grid-cols-5">
             {/* Master Panel - List */}
