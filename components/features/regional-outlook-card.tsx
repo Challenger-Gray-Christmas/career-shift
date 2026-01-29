@@ -87,7 +87,7 @@ export function RegionalOutlookCard({ data }: RegionalOutlookCardProps) {
               ) : (
                 <tr>
                   <td colSpan={4} className="py-4 text-center text-gray-500">
-                    No regions found matching "{searchTerm}"
+                    No regions found matching &quot;{searchTerm}&quot;
                   </td>
                 </tr>
               )}
