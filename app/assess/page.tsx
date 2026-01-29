@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, Suspense, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getQuestionnaireProfile } from "@/lib/data/questionnaire-data";
@@ -83,12 +83,23 @@ function AssessPageContent() {
     }
   };
 
+  const pathwayDetailRef = useRef<HTMLDivElement>(null);
+  const matchDetailRef = useRef<HTMLDivElement>(null);
+
   const handleSelectMatch = (match: CareerMatch) => {
     setSelectedItem({ type: "match", data: match });
+    // Scroll detail panel into view on mobile/when scrolled down
+    setTimeout(() => {
+      matchDetailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
   };
 
   const handleSelectPathway = (job: PathwayJob) => {
     setSelectedItem({ type: "pathway", data: job });
+    // Scroll detail panel into view on mobile/when scrolled down
+    setTimeout(() => {
+      pathwayDetailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 50);
   };
 
   const tabs: { id: Tab; label: string }[] = [
@@ -183,7 +194,7 @@ function AssessPageContent() {
                 </div>
 
                 {/* Detail Panel */}
-                <div className="lg:col-span-3">
+                <div ref={matchDetailRef} className="lg:col-span-3 scroll-mt-4">
                   {selectedItem?.type === "match" ? (
                     <CareerMatchDetail
                       match={selectedItem.data}
@@ -242,7 +253,7 @@ function AssessPageContent() {
                 </div>
 
                 {/* Detail Panel */}
-                <div className="lg:col-span-3">
+                <div ref={pathwayDetailRef} className="lg:col-span-3 scroll-mt-4">
                   {selectedItem?.type === "pathway" ? (
                     <PathwayDetail
                       job={selectedItem.data}
