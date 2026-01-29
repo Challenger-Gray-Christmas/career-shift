@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getQuestionnaireProfile } from "@/lib/data/questionnaire-data";
@@ -15,16 +15,15 @@ import { CareerMatchListItem } from "@/components/features/career-match-list-ite
 import { CareerMatchDetail } from "@/components/features/career-match-detail";
 import { PathwayListItem } from "@/components/features/pathway-list-item";
 import { PathwayDetail } from "@/components/features/pathway-detail";
-import { Loader2, CheckCircle2 } from "lucide-react";
+import { OccupationSearch } from "@/components/features/occupation-search";
+import { MarketDataGridSkeleton } from "@/components/features/market-data-grid-skeleton";
+import { MasterDetailSkeleton } from "@/components/features/master-detail-skeleton";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Loader2 } from "lucide-react";
 import type { CareerMatch, PathwayJob } from "@/lib/data/types";
 import { cn } from "@/lib/utils";
 
-type AnalysisStep = {
-  label: string;
-  status: "pending" | "loading" | "complete";
-};
-
-type Tab = "profile" | "current-role" | "career-matches" | "career-pathways";
+type Tab = "profile" | "current-role" | "career-matches" | "career-pathways" | "job-explorer";
 
 type SelectedItem =
   | { type: "match"; data: CareerMatch }
@@ -34,14 +33,16 @@ function AssessPageContent() {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab") as Tab | null;
 
-  const [phase, setPhase] = useState<"analyzing" | "results">("analyzing");
   const [activeTab, setActiveTab] = useState<Tab>(tabParam || "profile");
   const [selectedItem, setSelectedItem] = useState<SelectedItem | null>(null);
-  const [analysisSteps, setAnalysisSteps] = useState<AnalysisStep[]>([
-    { label: "Evaluating current role outlook", status: "pending" },
-    { label: "Finding career matches", status: "pending" },
-    { label: "Identifying skills gaps", status: "pending" },
-  ]);
+  const [selectedOccupation, setSelectedOccupation] = useState("Customer Service Representative");
+  const [tabLoadingState, setTabLoadingState] = useState<Record<Tab, "idle" | "loading" | "loaded">>({
+    "profile": "loaded",
+    "current-role": "idle",
+    "career-matches": "idle",
+    "career-pathways": "idle",
+    "job-explorer": "idle",
+  });
 
   const profile = getQuestionnaireProfile();
   const careerMatches = getCareerMatches();
@@ -53,43 +54,31 @@ function AssessPageContent() {
     ? getSkillGapData(pathwaysData.id, selectedItem.data.id)
     : null;
 
-  // Auto-start analyzing animation on mount
-  useEffect(() => {
-    const stepDuration = 800;
-
-    analysisSteps.forEach((_, index) => {
-      setTimeout(() => {
-        setAnalysisSteps((prev) =>
-          prev.map((step, i) => ({
-            ...step,
-            status: i < index ? "complete" : i === index ? "loading" : "pending",
-          }))
-        );
-      }, index * stepDuration);
-
-      setTimeout(() => {
-        setAnalysisSteps((prev) =>
-          prev.map((step, i) => ({
-            ...step,
-            status: i <= index ? "complete" : "pending",
-          }))
-        );
-      }, (index + 1) * stepDuration - 100);
-    });
-
-    setTimeout(() => {
-      setPhase("results");
-    }, analysisSteps.length * stepDuration + 300);
-  }, []);
-
   const handleTabChange = (tab: Tab) => {
     setActiveTab(tab);
-    // Auto-select first item when switching to career tabs
-    if (tab === "career-matches" && selectedItem?.type !== "match" && careerMatches.length > 0) {
-      setSelectedItem({ type: "match", data: careerMatches[0] });
-    }
-    if (tab === "career-pathways" && selectedItem?.type !== "pathway" && pathwaysData.advancementJobs.length > 0) {
-      setSelectedItem({ type: "pathway", data: pathwaysData.advancementJobs[0] });
+
+    // Simulate loading for tabs that haven't been loaded yet
+    if (tabLoadingState[tab] === "idle") {
+      setTabLoadingState(prev => ({ ...prev, [tab]: "loading" }));
+      // Simulate API delay
+      setTimeout(() => {
+        setTabLoadingState(prev => ({ ...prev, [tab]: "loaded" }));
+        // Auto-select first item when switching to career tabs
+        if (tab === "career-matches" && careerMatches.length > 0) {
+          setSelectedItem({ type: "match", data: careerMatches[0] });
+        }
+        if (tab === "career-pathways" && pathwaysData.advancementJobs.length > 0) {
+          setSelectedItem({ type: "pathway", data: pathwaysData.advancementJobs[0] });
+        }
+      }, 800);
+    } else {
+      // Tab already loaded, just auto-select if needed
+      if (tab === "career-matches" && selectedItem?.type !== "match" && careerMatches.length > 0) {
+        setSelectedItem({ type: "match", data: careerMatches[0] });
+      }
+      if (tab === "career-pathways" && selectedItem?.type !== "pathway" && pathwaysData.advancementJobs.length > 0) {
+        setSelectedItem({ type: "pathway", data: pathwaysData.advancementJobs[0] });
+      }
     }
   };
 
@@ -106,49 +95,9 @@ function AssessPageContent() {
     { id: "current-role", label: "Current Role" },
     { id: "career-matches", label: "Career Matches" },
     { id: "career-pathways", label: "Career Pathways" },
+    { id: "job-explorer", label: "Job Explorer" },
   ];
 
-  // Analyzing Phase
-  if (phase === "analyzing") {
-    return (
-      <div className="container mx-auto px-4 py-8">
-        <div className="mx-auto max-w-md mt-20">
-          <Card>
-            <CardHeader className="text-center">
-              <CardTitle className="text-xl text-charcoal">Analyzing Your Profile</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {analysisSteps.map((step, index) => (
-                  <div key={index} className="flex items-center gap-3">
-                    {step.status === "loading" ? (
-                      <Loader2 className="h-5 w-5 animate-spin text-gold" />
-                    ) : step.status === "complete" ? (
-                      <CheckCircle2 className="h-5 w-5 text-green-600" />
-                    ) : (
-                      <div className="h-5 w-5 rounded-full border-2 border-gray-200" />
-                    )}
-                    <span
-                      className={cn(
-                        "text-sm",
-                        step.status === "complete" && "text-green-600",
-                        step.status === "loading" && "text-gold font-medium",
-                        step.status === "pending" && "text-gray-400"
-                      )}
-                    >
-                      {step.label}...
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-    );
-  }
-
-  // Results Phase with Tabs
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-6">
@@ -183,104 +132,169 @@ function AssessPageContent() {
 
       {activeTab === "current-role" && (
         <div className="space-y-4">
-          <CurrentRoleCard data={pathwaysData} />
-          <MarketDataGrid
-            jobPostingsData={jobPostingsData}
-            outlookData={outlookData}
-          />
+          {tabLoadingState["current-role"] === "loading" ? (
+            <>
+              <Card className="p-4">
+                <Skeleton className="h-6 w-48 mb-2" />
+                <Skeleton className="h-4 w-32" />
+              </Card>
+              <MarketDataGridSkeleton />
+            </>
+          ) : (
+            <>
+              <CurrentRoleCard data={pathwaysData} />
+              <MarketDataGrid
+                jobPostingsData={jobPostingsData}
+                outlookData={outlookData}
+              />
+            </>
+          )}
         </div>
       )}
 
       {activeTab === "career-matches" && (
         <div className="space-y-4">
-          <CurrentRoleCard data={pathwaysData} />
-
-          <div className="grid gap-6 lg:grid-cols-5">
-            {/* Master Panel - List */}
-            <div className="lg:col-span-2 space-y-2">
-              <p className="text-sm text-gray-600 mb-2">
-                Select a career to see details
-              </p>
-              {careerMatches.map((match) => (
-                <CareerMatchListItem
-                  key={match.id}
-                  match={match}
-                  isSelected={selectedItem?.type === "match" && selectedItem.data.id === match.id}
-                  onClick={() => handleSelectMatch(match)}
-                />
-              ))}
-            </div>
-
-            {/* Detail Panel */}
-            <div className="lg:col-span-3">
-              {selectedItem?.type === "match" ? (
-                <CareerMatchDetail
-                  match={selectedItem.data}
-                  jobPostingsData={jobPostingsData}
-                  outlookData={outlookData}
-                />
-              ) : (
-                <div className="border border-dashed rounded-lg p-8 text-center text-gray-500">
-                  <p>Select a career from the list to see detailed information</p>
+          {tabLoadingState["career-matches"] === "loading" ? (
+            <>
+              <Card className="p-4">
+                <Skeleton className="h-6 w-48 mb-2" />
+                <Skeleton className="h-4 w-32" />
+              </Card>
+              <MasterDetailSkeleton />
+            </>
+          ) : (
+            <>
+              <CurrentRoleCard data={pathwaysData} />
+              <div className="grid gap-6 lg:grid-cols-5">
+                {/* Master Panel - List */}
+                <div className="lg:col-span-2 space-y-2">
+                  <p className="text-sm text-gray-600 mb-2">
+                    Select a career to see details
+                  </p>
+                  {careerMatches.map((match) => (
+                    <CareerMatchListItem
+                      key={match.id}
+                      match={match}
+                      isSelected={selectedItem?.type === "match" && selectedItem.data.id === match.id}
+                      onClick={() => handleSelectMatch(match)}
+                    />
+                  ))}
                 </div>
-              )}
-            </div>
-          </div>
+
+                {/* Detail Panel */}
+                <div className="lg:col-span-3">
+                  {selectedItem?.type === "match" ? (
+                    <CareerMatchDetail
+                      match={selectedItem.data}
+                      jobPostingsData={jobPostingsData}
+                      outlookData={outlookData}
+                    />
+                  ) : (
+                    <div className="border border-dashed rounded-lg p-8 text-center text-gray-500">
+                      <p>Select a career from the list to see detailed information</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
         </div>
       )}
 
       {activeTab === "career-pathways" && (
         <div className="space-y-4">
-          <CurrentRoleCard data={pathwaysData} />
+          {tabLoadingState["career-pathways"] === "loading" ? (
+            <>
+              <Card className="p-4">
+                <Skeleton className="h-6 w-48 mb-2" />
+                <Skeleton className="h-4 w-32" />
+              </Card>
+              <MasterDetailSkeleton />
+            </>
+          ) : (
+            <>
+              <CurrentRoleCard data={pathwaysData} />
+              <div className="grid gap-6 lg:grid-cols-5">
+                {/* Master Panel - List */}
+                <div className="lg:col-span-2 space-y-4">
+                  <div>
+                    <p className="text-sm font-medium text-charcoal mb-2">Where You Could Go</p>
+                    <div className="space-y-2">
+                      {pathwaysData.advancementJobs.slice(0, 6).map((job) => (
+                        <PathwayListItem
+                          key={job.id}
+                          job={job}
+                          isSelected={selectedItem?.type === "pathway" && selectedItem.data.id === job.id}
+                          onClick={() => handleSelectPathway(job)}
+                        />
+                      ))}
+                    </div>
+                  </div>
 
-          <div className="grid gap-6 lg:grid-cols-5">
-            {/* Master Panel - List */}
-            <div className="lg:col-span-2 space-y-4">
-              <div>
-                <p className="text-sm font-medium text-charcoal mb-2">Where You Could Go</p>
-                <div className="space-y-2">
-                  {pathwaysData.advancementJobs.slice(0, 6).map((job) => (
-                    <PathwayListItem
-                      key={job.id}
-                      job={job}
-                      isSelected={selectedItem?.type === "pathway" && selectedItem.data.id === job.id}
-                      onClick={() => handleSelectPathway(job)}
+                  <div>
+                    <p className="text-sm font-medium text-charcoal mb-2">Where People Come From</p>
+                    <div className="space-y-2">
+                      {pathwaysData.feederJobs.slice(0, 6).map((job) => (
+                        <PathwayListItem
+                          key={job.id}
+                          job={job}
+                          isSelected={selectedItem?.type === "pathway" && selectedItem.data.id === job.id}
+                          onClick={() => handleSelectPathway(job)}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Detail Panel */}
+                <div className="lg:col-span-3">
+                  {selectedItem?.type === "pathway" ? (
+                    <PathwayDetail
+                      job={selectedItem.data}
+                      skillGapData={skillGapData}
+                      jobPostingsData={jobPostingsData}
+                      outlookData={outlookData}
                     />
-                  ))}
+                  ) : (
+                    <div className="border border-dashed rounded-lg p-8 text-center text-gray-500">
+                      <p>Select a career pathway to see detailed information</p>
+                    </div>
+                  )}
                 </div>
               </div>
+            </>
+          )}
+        </div>
+      )}
 
-              <div>
-                <p className="text-sm font-medium text-charcoal mb-2">Where People Come From</p>
-                <div className="space-y-2">
-                  {pathwaysData.feederJobs.slice(0, 6).map((job) => (
-                    <PathwayListItem
-                      key={job.id}
-                      job={job}
-                      isSelected={selectedItem?.type === "pathway" && selectedItem.data.id === job.id}
-                      onClick={() => handleSelectPathway(job)}
-                    />
-                  ))}
-                </div>
+      {activeTab === "job-explorer" && (
+        <div className="space-y-6">
+          {tabLoadingState["job-explorer"] === "loading" ? (
+            <>
+              <Skeleton className="h-10 w-full max-w-md" />
+              <div className="flex flex-col gap-1">
+                <Skeleton className="h-5 w-48" />
+                <Skeleton className="h-4 w-32" />
               </div>
-            </div>
-
-            {/* Detail Panel */}
-            <div className="lg:col-span-3">
-              {selectedItem?.type === "pathway" ? (
-                <PathwayDetail
-                  job={selectedItem.data}
-                  skillGapData={skillGapData}
-                  jobPostingsData={jobPostingsData}
-                  outlookData={outlookData}
-                />
-              ) : (
-                <div className="border border-dashed rounded-lg p-8 text-center text-gray-500">
-                  <p>Select a career pathway to see detailed information</p>
-                </div>
-              )}
-            </div>
-          </div>
+              <MarketDataGridSkeleton />
+            </>
+          ) : (
+            <>
+              <OccupationSearch value={selectedOccupation} onChange={setSelectedOccupation} />
+              <div className="flex flex-col gap-1">
+                <span className="text-lg font-medium text-charcoal">
+                  {selectedOccupation}
+                </span>
+                <span className="text-sm text-gray-500">
+                  {getJobPostingsData(selectedOccupation).postingsTrend.total.toLocaleString()} recent postings
+                </span>
+              </div>
+              <MarketDataGrid
+                jobPostingsData={getJobPostingsData(selectedOccupation)}
+                outlookData={outlookData}
+              />
+            </>
+          )}
         </div>
       )}
     </div>
