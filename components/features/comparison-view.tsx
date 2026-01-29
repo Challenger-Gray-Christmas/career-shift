@@ -1,6 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { LineChart } from "@/components/charts/line-chart";
 import { MarketDataGrid } from "@/components/features/market-data-grid";
 import { TrendingUp, TrendingDown, Minus, Check, BookOpen, ExternalLink } from "lucide-react";
 import type { CareerMatch, JobPostingsData, ProjectedOutlookData } from "@/lib/data/types";
@@ -26,12 +25,6 @@ export function ComparisonView({ match, jobPostingsData, outlookData }: Comparis
       : "text-yellow-600";
 
   const formatSalary = (value: number) => `$${value.toLocaleString()}`;
-
-  // Generate simple outlook trend data
-  const outlookChartData = Array.from({ length: 7 }, (_, i) => ({
-    month: (2024 + i).toString(),
-    value: 100 + (match.outlookPercent / 6) * i,
-  }));
 
   return (
     <div className="space-y-6">
@@ -60,15 +53,6 @@ export function ComparisonView({ match, jobPostingsData, outlookData }: Comparis
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="h-52">
-            <LineChart
-              data={outlookChartData}
-              valueFormatter={(v) => `${v.toFixed(0)}%`}
-              color={match.outlookPercent >= 0 ? "#22c55e" : "#ef4444"}
-            />
-          </div>
-        </CardContent>
       </Card>
 
       {/* Transferable Skills */}

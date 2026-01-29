@@ -2,7 +2,6 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getQuestionnaireProfile } from "@/lib/data/questionnaire-data";
 import { getCareerMatches } from "@/lib/data/career-matches";
@@ -10,12 +9,12 @@ import { getProjectedOutlookData } from "@/lib/data/projected-outlook";
 import { getJobPostingsData } from "@/lib/data/job-postings";
 import { getCareerPathwaysData, getSkillGapData } from "@/lib/data/career-pathways";
 import { ProfileSummaryCard } from "@/components/features/profile-summary-card";
-import { CareerMatchCard } from "@/components/features/career-match-card";
-import { ComparisonView } from "@/components/features/comparison-view";
 import { MarketDataGrid } from "@/components/features/market-data-grid";
 import { CurrentRoleCard } from "@/components/features/current-role-card";
-import { PathwayCard } from "@/components/features/pathway-card";
-import { SkillGapPanel } from "@/components/features/skill-gap-panel";
+import { CareerMatchListItem } from "@/components/features/career-match-list-item";
+import { CareerMatchDetail } from "@/components/features/career-match-detail";
+import { PathwayListItem } from "@/components/features/pathway-list-item";
+import { PathwayDetail } from "@/components/features/pathway-detail";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import type { CareerMatch, PathwayJob } from "@/lib/data/types";
 import { cn } from "@/lib/utils";
@@ -25,7 +24,7 @@ type AnalysisStep = {
   status: "pending" | "loading" | "complete";
 };
 
-type Tab = "profile" | "current-role" | "career-matches" | "career-pathways" | "comparison";
+type Tab = "profile" | "current-role" | "career-matches" | "career-pathways";
 
 type SelectedItem =
   | { type: "match"; data: CareerMatch }
@@ -38,6 +37,7 @@ function AssessPageContent() {
   const [phase, setPhase] = useState<"analyzing" | "results">("analyzing");
   const [activeTab, setActiveTab] = useState<Tab>(tabParam || "profile");
   const [selectedItem, setSelectedItem] = useState<SelectedItem | null>(null);
+  const [selectedRegion, setSelectedRegion] = useState<string>("national");
   const [analysisSteps, setAnalysisSteps] = useState<AnalysisStep[]>([
     { label: "Evaluating current role outlook", status: "pending" },
     { label: "Finding career matches", status: "pending" },
@@ -83,14 +83,23 @@ function AssessPageContent() {
     }, analysisSteps.length * stepDuration + 300);
   }, []);
 
+  const handleTabChange = (tab: Tab) => {
+    setActiveTab(tab);
+    // Auto-select first item when switching to career tabs
+    if (tab === "career-matches" && selectedItem?.type !== "match" && careerMatches.length > 0) {
+      setSelectedItem({ type: "match", data: careerMatches[0] });
+    }
+    if (tab === "career-pathways" && selectedItem?.type !== "pathway" && pathwaysData.advancementJobs.length > 0) {
+      setSelectedItem({ type: "pathway", data: pathwaysData.advancementJobs[0] });
+    }
+  };
+
   const handleSelectMatch = (match: CareerMatch) => {
     setSelectedItem({ type: "match", data: match });
-    setActiveTab("comparison");
   };
 
   const handleSelectPathway = (job: PathwayJob) => {
     setSelectedItem({ type: "pathway", data: job });
-    setActiveTab("comparison");
   };
 
   const tabs: { id: Tab; label: string }[] = [
@@ -98,7 +107,6 @@ function AssessPageContent() {
     { id: "current-role", label: "Current Role" },
     { id: "career-matches", label: "Career Matches" },
     { id: "career-pathways", label: "Career Pathways" },
-    { id: "comparison", label: "Comparison" },
   ];
 
   // Analyzing Phase
@@ -157,7 +165,7 @@ function AssessPageContent() {
           {tabs.map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
+              onClick={() => handleTabChange(tab.id)}
               className={cn(
                 "py-3 px-1 text-sm font-medium border-b-2 transition-colors",
                 activeTab === tab.id
@@ -183,100 +191,105 @@ function AssessPageContent() {
 
       {activeTab === "career-matches" && (
         <div className="space-y-4">
-          <p className="text-sm text-gray-600 mb-4">
-            Click on a career to see detailed comparison and skills gap analysis.
-          </p>
-          <div className="grid gap-4 md:grid-cols-2">
-            {careerMatches.map((match) => (
-              <CareerMatchCard
-                key={match.id}
-                match={match}
-                onClick={() => handleSelectMatch(match)}
-                isSelected={selectedItem?.type === "match" && selectedItem.data.id === match.id}
-              />
-            ))}
+          <CurrentRoleCard
+            data={pathwaysData}
+            regions={jobPostingsData.topRegions}
+            selectedRegion={selectedRegion}
+            onRegionChange={setSelectedRegion}
+          />
+
+          <div className="grid gap-6 lg:grid-cols-5">
+            {/* Master Panel - List */}
+            <div className="lg:col-span-2 space-y-2">
+              <p className="text-sm text-gray-600 mb-2">
+                Select a career to see details
+              </p>
+              {careerMatches.map((match) => (
+                <CareerMatchListItem
+                  key={match.id}
+                  match={match}
+                  isSelected={selectedItem?.type === "match" && selectedItem.data.id === match.id}
+                  onClick={() => handleSelectMatch(match)}
+                />
+              ))}
+            </div>
+
+            {/* Detail Panel */}
+            <div className="lg:col-span-3">
+              {selectedItem?.type === "match" ? (
+                <CareerMatchDetail
+                  match={selectedItem.data}
+                  jobPostingsData={jobPostingsData}
+                  outlookData={outlookData}
+                />
+              ) : (
+                <div className="border border-dashed rounded-lg p-8 text-center text-gray-500">
+                  <p>Select a career from the list to see detailed information</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
 
       {activeTab === "career-pathways" && (
-        <div className="space-y-6">
-          <CurrentRoleCard data={pathwaysData} />
+        <div className="space-y-4">
+          <CurrentRoleCard
+            data={pathwaysData}
+            regions={jobPostingsData.topRegions}
+            selectedRegion={selectedRegion}
+            onRegionChange={setSelectedRegion}
+          />
 
-          <div className="grid gap-6 md:grid-cols-2">
-            <div>
-              <h2 className="mb-4 text-lg font-semibold text-charcoal">
-                Where You Could Go
-              </h2>
-              <div className="space-y-3">
-                {pathwaysData.advancementJobs.slice(0, 6).map((job) => (
-                  <PathwayCard
-                    key={job.id}
-                    job={job}
-                    onClick={() => handleSelectPathway(job)}
-                    isSelected={selectedItem?.type === "pathway" && selectedItem.data.id === job.id}
-                  />
-                ))}
+          <div className="grid gap-6 lg:grid-cols-5">
+            {/* Master Panel - List */}
+            <div className="lg:col-span-2 space-y-4">
+              <div>
+                <p className="text-sm font-medium text-charcoal mb-2">Where You Could Go</p>
+                <div className="space-y-2">
+                  {pathwaysData.advancementJobs.slice(0, 6).map((job) => (
+                    <PathwayListItem
+                      key={job.id}
+                      job={job}
+                      isSelected={selectedItem?.type === "pathway" && selectedItem.data.id === job.id}
+                      onClick={() => handleSelectPathway(job)}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <p className="text-sm font-medium text-charcoal mb-2">Where People Come From</p>
+                <div className="space-y-2">
+                  {pathwaysData.feederJobs.slice(0, 6).map((job) => (
+                    <PathwayListItem
+                      key={job.id}
+                      job={job}
+                      isSelected={selectedItem?.type === "pathway" && selectedItem.data.id === job.id}
+                      onClick={() => handleSelectPathway(job)}
+                    />
+                  ))}
+                </div>
               </div>
             </div>
 
-            <div>
-              <h2 className="mb-4 text-lg font-semibold text-charcoal">
-                Where People Come From
-              </h2>
-              <div className="space-y-3">
-                {pathwaysData.feederJobs.slice(0, 6).map((job) => (
-                  <PathwayCard
-                    key={job.id}
-                    job={job}
-                    onClick={() => handleSelectPathway(job)}
-                    isSelected={selectedItem?.type === "pathway" && selectedItem.data.id === job.id}
-                  />
-                ))}
-              </div>
+            {/* Detail Panel */}
+            <div className="lg:col-span-3">
+              {selectedItem?.type === "pathway" ? (
+                <PathwayDetail
+                  job={selectedItem.data}
+                  skillGapData={skillGapData}
+                  jobPostingsData={jobPostingsData}
+                  outlookData={outlookData}
+                />
+              ) : (
+                <div className="border border-dashed rounded-lg p-8 text-center text-gray-500">
+                  <p>Select a career pathway to see detailed information</p>
+                </div>
+              )}
             </div>
           </div>
         </div>
-      )}
-
-      {activeTab === "comparison" && (
-        selectedItem ? (
-          selectedItem.type === "match" ? (
-            <ComparisonView
-              match={selectedItem.data}
-              jobPostingsData={jobPostingsData}
-              outlookData={outlookData}
-            />
-          ) : (
-            <div className="space-y-6">
-              <SkillGapPanel data={skillGapData!} />
-              <MarketDataGrid
-                jobPostingsData={jobPostingsData}
-                outlookData={outlookData}
-              />
-            </div>
-          )
-        ) : (
-          <Card className="border-dashed">
-            <CardContent className="p-8 text-center text-gray-500">
-              <p>Select a career from Career Matches or Career Pathways to see detailed analysis</p>
-              <div className="mt-4 flex justify-center gap-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setActiveTab("career-matches")}
-                >
-                  View Career Matches
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={() => setActiveTab("career-pathways")}
-                >
-                  View Career Pathways
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )
       )}
     </div>
   );
