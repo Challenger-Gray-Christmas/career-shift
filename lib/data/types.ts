@@ -102,3 +102,56 @@ export interface ProjectedOutlookData {
   };
   regional: RegionalProjection[];
 }
+
+// Assessment/Questionnaire types
+export interface WorkExperience {
+  company: string;
+  jobTitle: string;
+  location: string;
+  startYear: string;
+  endYear: string;
+  responsibilities: string;
+}
+
+export interface Education {
+  school: string;
+  degree: string;
+  location: string;
+  endYear: string;
+  major?: string;
+}
+
+export interface QuestionnaireProfile {
+  name: string;
+  currentRole: string;
+  location: string;
+  email: string;
+  skills: string[];
+  experience: WorkExperience[];
+  education: Education[];
+  certifications: string[];
+}
+
+export interface CourseraCourse {
+  title: string;
+  provider: string;
+  duration: string;
+  level: "Beginner" | "Intermediate" | "Advanced";
+  url: string;
+}
+
+export interface SkillGapWithCourse {
+  skill: string;
+  course: CourseraCourse;
+}
+
+export interface CareerMatch {
+  id: string;
+  title: string;
+  matchPercent: number;
+  outlookPercent: number;
+  salaryRange: { min: number; max: number };
+  rationale: string;
+  transferableSkills: string[];
+  skillsGap: SkillGapWithCourse[];
+}

@@ -189,7 +189,7 @@ const sampleSkillGap: SkillGapData = {
 };
 
 export function getCareerPathwaysData(
-  occupationId: string
+  _occupationId: string
 ): CareerPathwaysData {
   // For the prototype, return sample data (Data Scientist pathways)
   // In production, this would fetch real data based on occupationId

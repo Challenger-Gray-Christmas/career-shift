@@ -2,6 +2,19 @@
 
 import { LineChart as RechartsLineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
+const MONTH_ABBREV = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+function formatMonthLabel(value: string): string {
+  // Handle YYYY-MM format (e.g., "2025-01" -> "Jan '25")
+  if (/^\d{4}-\d{2}$/.test(value)) {
+    const [year, month] = value.split("-");
+    const monthIndex = parseInt(month, 10) - 1;
+    return `${MONTH_ABBREV[monthIndex]} '${year.slice(2)}`;
+  }
+  // Handle 4-digit year format (e.g., "2025" -> "2025")
+  return value;
+}
+
 interface LineChartProps {
   data: { month: string; value: number }[];
   valueFormatter?: (value: number) => string;
@@ -9,9 +22,6 @@ interface LineChartProps {
 }
 
 export function LineChart({ data, valueFormatter = (v) => v.toString(), color = "#cd995c" }: LineChartProps) {
-  // Detect if data uses year format (4-digit) vs month format (YYYY-MM)
-  const isYearFormat = data.length > 0 && /^\d{4}$/.test(data[0].month);
-
   return (
     <ResponsiveContainer width="100%" height={200}>
       <RechartsLineChart data={data} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
@@ -19,7 +29,7 @@ export function LineChart({ data, valueFormatter = (v) => v.toString(), color = 
         <XAxis
           dataKey="month"
           tick={{ fontSize: 10, fill: "#32373c" }}
-          tickFormatter={(value) => isYearFormat ? value : value.slice(5)}
+          tickFormatter={formatMonthLabel}
         />
         <YAxis
           tick={{ fontSize: 10, fill: "#32373c" }}
@@ -28,6 +38,7 @@ export function LineChart({ data, valueFormatter = (v) => v.toString(), color = 
         />
         <Tooltip
           formatter={(value) => [valueFormatter(value as number), "Value"]}
+          labelFormatter={formatMonthLabel}
           contentStyle={{ borderColor: "#eaeaea" }}
         />
         <Line

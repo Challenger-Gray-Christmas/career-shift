@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { LineChart } from "@/components/charts/line-chart";
+import { filterCurrentMonth } from "@/lib/utils/filter-timeseries";
 import type { PostingsTrend } from "@/lib/data/types";
 
 interface PostingsTrendCardProps {
@@ -7,9 +8,11 @@ interface PostingsTrendCardProps {
 }
 
 export function PostingsTrendCard({ data }: PostingsTrendCardProps) {
-  const chartData = data.timeseries.month.map((month, i) => ({
+  const filteredTimeseries = filterCurrentMonth(data.timeseries);
+
+  const chartData = filteredTimeseries.month.map((month, i) => ({
     month,
-    value: data.timeseries.values[i],
+    value: filteredTimeseries.values[i],
   }));
 
   const formatPostings = (value: number) => `${(value / 1000).toFixed(0)}k`;
