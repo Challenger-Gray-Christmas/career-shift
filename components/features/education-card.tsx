@@ -1,5 +1,4 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DonutChart } from "@/components/charts/donut-chart";
 import type { EducationRanking } from "@/lib/data/types";
 
 interface EducationCardProps {
@@ -7,10 +6,11 @@ interface EducationCardProps {
 }
 
 export function EducationCard({ data }: EducationCardProps) {
-  const chartData = data.map(item => ({
-    name: item.name,
-    value: item.unique_postings,
-  }));
+  const total = data.reduce((sum, item) => sum + item.unique_postings, 0);
+  const maxPostings = Math.max(...data.map(d => d.unique_postings));
+
+  const formatNumber = (num: number) => num.toLocaleString();
+  const formatPercent = (num: number) => `${((num / total) * 100).toFixed(1)}%`;
 
   return (
     <Card>
@@ -19,7 +19,34 @@ export function EducationCard({ data }: EducationCardProps) {
         <p className="text-xs text-gray-500">Distribution by degree level</p>
       </CardHeader>
       <CardContent>
-        <DonutChart data={chartData} />
+        <div className="space-y-3">
+          {data.map((item, index) => (
+            <div key={item.name} className="flex items-center gap-3">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center justify-between mb-1">
+                  <p className="text-sm text-charcoal truncate" title={item.name}>
+                    {item.name}
+                  </p>
+                  <span className="text-sm font-medium text-charcoal ml-2">
+                    {formatPercent(item.unique_postings)}
+                  </span>
+                </div>
+                <div className="h-2 w-full rounded-full bg-gray-100">
+                  <div
+                    className="h-2 rounded-full bg-gold"
+                    style={{
+                      width: `${(item.unique_postings / maxPostings) * 100}%`,
+                      opacity: 1 - (index * 0.15)
+                    }}
+                  />
+                </div>
+              </div>
+              <span className="text-xs text-gray-500 tabular-nums w-16 text-right">
+                {formatNumber(item.unique_postings)}
+              </span>
+            </div>
+          ))}
+        </div>
       </CardContent>
     </Card>
   );
