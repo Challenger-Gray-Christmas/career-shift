@@ -53,7 +53,7 @@ export function PathwayDetail({ job, skillGapData, jobPostingsData, outlookData 
               </div>
             </div>
             <div className="flex items-center justify-center h-10 w-10 rounded-full bg-gold/10 text-gold font-bold text-sm">
-              {job.score}%
+              {Math.round(job.score * 100)}%
             </div>
           </div>
         </CardHeader>

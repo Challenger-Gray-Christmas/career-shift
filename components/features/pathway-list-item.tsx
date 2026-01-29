@@ -37,7 +37,7 @@ export function PathwayListItem({ job, isSelected, onClick }: PathwayListItemPro
       <div className="flex items-center justify-between">
         <span className="font-medium text-charcoal text-sm">{job.name}</span>
         <div className="flex items-center justify-center h-8 w-8 rounded-full bg-gold/10 text-gold font-bold text-xs">
-          {job.score}%
+          {Math.round(job.score * 100)}%
         </div>
       </div>
       <div className="mt-1 flex items-center gap-3 text-xs">
