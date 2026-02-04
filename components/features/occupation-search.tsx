@@ -1,28 +1,10 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Search } from "lucide-react";
+import { Search, Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
-
-// Sample occupations for autocomplete (will be replaced by API)
-const SAMPLE_OCCUPATIONS = [
-  "Customer Service Representative",
-  "Sales Representative",
-  "Administrative Assistant",
-  "HR Coordinator",
-  "Account Manager",
-  "Insurance Agent",
-  "Retail Manager",
-  "Bank Teller",
-  "Receptionist",
-  "Data Analyst",
-  "Software Developer",
-  "Project Manager",
-  "Marketing Coordinator",
-  "Financial Analyst",
-  "Operations Manager",
-];
+import { useOccupationSearch } from "@/lib/hooks";
 
 interface OccupationSearchProps {
   value: string;
@@ -36,9 +18,9 @@ export function OccupationSearch({ value, onChange }: OccupationSearchProps) {
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
 
-  const filtered = SAMPLE_OCCUPATIONS.filter((occ) =>
-    occ.toLowerCase().includes(query.toLowerCase())
-  ).slice(0, 8);
+  // Use Lightcast API for occupation search
+  const { results, loading } = useOccupationSearch(query);
+  const filtered = results.slice(0, 8);
 
   useEffect(() => {
     setQuery(value);
@@ -70,7 +52,7 @@ export function OccupationSearch({ value, onChange }: OccupationSearchProps) {
       case "Enter":
         e.preventDefault();
         if (filtered[highlightedIndex]) {
-          handleSelect(filtered[highlightedIndex]);
+          handleSelect(filtered[highlightedIndex].name);
         }
         break;
       case "Escape":
@@ -82,7 +64,11 @@ export function OccupationSearch({ value, onChange }: OccupationSearchProps) {
   return (
     <div className="relative w-full max-w-md">
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+        {loading ? (
+          <Loader2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 animate-spin" />
+        ) : (
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+        )}
         <Input
           ref={inputRef}
           type="text"
@@ -107,7 +93,7 @@ export function OccupationSearch({ value, onChange }: OccupationSearchProps) {
         >
           {filtered.map((occupation, index) => (
             <li
-              key={occupation}
+              key={occupation.id}
               className={cn(
                 "px-4 py-2 cursor-pointer text-sm",
                 index === highlightedIndex
@@ -115,9 +101,9 @@ export function OccupationSearch({ value, onChange }: OccupationSearchProps) {
                   : "text-charcoal hover:bg-gray-50"
               )}
               onMouseEnter={() => setHighlightedIndex(index)}
-              onMouseDown={() => handleSelect(occupation)}
+              onMouseDown={() => handleSelect(occupation.name)}
             >
-              {occupation}
+              {occupation.name}
             </li>
           ))}
         </ul>
