@@ -129,6 +129,11 @@ export async function POST(request: NextRequest) {
       ),
     ]);
 
+    // Helper function to filter out "Unclassified" entries from rankings
+    const filterUnclassified = <T extends { name: string }>(items: T[]): T[] => {
+      return items.filter((item) => item.name.toLowerCase() !== 'unclassified');
+    };
+
     // Transform to match existing JobPostingsData interface
     const result = {
       occupation: occupationName,
@@ -151,24 +156,34 @@ export async function POST(request: NextRequest) {
         total: (postingsTrendsRes.data.timeseries.unique_postings || []).reduce((sum: number, val: number) => sum + val, 0),
       },
 
-      // Top regions
-      topRegions: regionRankingRes.data.ranking.buckets,
+      // Top regions (filtered)
+      topRegions: filterUnclassified(regionRankingRes.data.ranking.buckets),
 
-      // Top companies
-      topCompanies: companyRankingRes.data.ranking.buckets,
+      // Top companies (filtered)
+      topCompanies: filterUnclassified(
+        companyRankingRes.data.ranking.buckets.map((bucket) => ({
+          name: bucket.name,
+          unique_postings: bucket.unique_postings,
+          median_salary: bucket.median_salary || 0,
+        }))
+      ),
 
-      // Education requirements
-      educationRequirements: educationRankingRes.data.ranking.buckets.map((bucket) => ({
-        name: bucket.name,
-        unique_postings: bucket.unique_postings,
-      })),
+      // Education requirements (filtered)
+      educationRequirements: filterUnclassified(
+        educationRankingRes.data.ranking.buckets.map((bucket) => ({
+          name: bucket.name,
+          unique_postings: bucket.unique_postings,
+        }))
+      ),
 
-      // Job titles
-      topTitles: jobTitleRankingRes.data.ranking.buckets.map((bucket) => ({
-        name: bucket.name,
-        unique_postings: bucket.unique_postings,
-        median_salary: bucket.median_salary || 0,
-      })),
+      // Job titles (filtered)
+      topTitles: filterUnclassified(
+        jobTitleRankingRes.data.ranking.buckets.map((bucket) => ({
+          name: bucket.name,
+          unique_postings: bucket.unique_postings,
+          median_salary: bucket.median_salary || 0,
+        }))
+      ),
     };
 
     // Cache for 10 minutes

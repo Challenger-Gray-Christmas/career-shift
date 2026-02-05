@@ -23,7 +23,11 @@ export function CompaniesCard({ data }: CompaniesCardProps) {
             <div key={company.name} className="grid grid-cols-3 text-sm">
               <span className="text-charcoal truncate">{company.name}</span>
               <span className="text-right text-gray-600">{company.unique_postings.toLocaleString()}</span>
-              <span className="text-right text-gold">${(company.median_salary / 1000).toFixed(0)}k</span>
+              <span className="text-right text-gold">
+                {company.median_salary > 0
+                  ? `$${(company.median_salary / 1000).toFixed(0)}k`
+                  : 'N/A'}
+              </span>
             </div>
           ))}
         </div>

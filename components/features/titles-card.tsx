@@ -23,7 +23,11 @@ export function TitlesCard({ data }: TitlesCardProps) {
             <div key={title.name} className="grid grid-cols-3 text-sm">
               <span className="text-charcoal truncate">{title.name}</span>
               <span className="text-right text-gray-600">{title.unique_postings.toLocaleString()}</span>
-              <span className="text-right text-gold">${(title.median_salary / 1000).toFixed(0)}k</span>
+              <span className="text-right text-gold">
+                {title.median_salary > 0
+                  ? `$${(title.median_salary / 1000).toFixed(0)}k`
+                  : 'N/A'}
+              </span>
             </div>
           ))}
         </div>

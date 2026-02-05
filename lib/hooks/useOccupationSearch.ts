@@ -50,6 +50,15 @@ export function useOccupationSearch(query: string, debounceMs = 300): UseOccupat
   }, []);
 
   useEffect(() => {
+    // Show loading immediately when user types (if query is valid)
+    if (query && query.length >= 2) {
+      setLoading(true);
+    } else {
+      setLoading(false);
+      setResults([]);
+    }
+
+    // Debounce the actual API call
     const timer = setTimeout(() => {
       search(query);
     }, debounceMs);

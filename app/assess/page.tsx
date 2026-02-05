@@ -4,7 +4,7 @@ import { useState, Suspense, useRef, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, Loader2 } from "lucide-react";
+import { AlertCircle, Loader2, Search } from "lucide-react";
 import { getQuestionnaireProfile } from "@/lib/data/questionnaire-data";
 import { getCareerMatches } from "@/lib/data/career-matches";
 import { getProjectedOutlookData } from "@/lib/data/projected-outlook";
@@ -64,7 +64,8 @@ function AssessPageContent() {
 
   // Static data (not changed to API yet)
   const profile = getQuestionnaireProfile();
-  const [selectedOccupation, setSelectedOccupation] = useState(profile.currentRole);
+  // Job Explorer starts empty - user must search and select
+  const [selectedOccupation, setSelectedOccupation] = useState("");
   const careerMatches = getCareerMatches();
   const outlookData = getProjectedOutlookData();
 
@@ -87,7 +88,7 @@ function AssessPageContent() {
 
   const explorerJobData = useJobPostingsData({
     occupationName: selectedOccupation,
-    enabled: activeTab === "job-explorer",
+    enabled: activeTab === "job-explorer" && selectedOccupation.length > 0,
   });
 
   const skillGapData = useSkillGap({
@@ -337,9 +338,25 @@ function AssessPageContent() {
 
       {activeTab === "job-explorer" && (
         <div className="space-y-6">
-          {explorerJobData.loading ? (
+          <OccupationSearch value={selectedOccupation} onChange={setSelectedOccupation} />
+
+          {!selectedOccupation ? (
+            // Empty state - no occupation selected yet
+            <Card className="border-dashed">
+              <CardContent className="pt-6 pb-6">
+                <div className="text-center py-8">
+                  <Search className="h-12 w-12 text-gray-300 mx-auto mb-3" />
+                  <p className="text-base font-medium text-charcoal mb-1">
+                    Enter your preferred job here
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Search and select an occupation above to view market data
+                  </p>
+                </div>
+              </CardContent>
+            </Card>
+          ) : explorerJobData.loading ? (
             <>
-              <Skeleton className="h-10 w-full max-w-md" />
               <div className="flex flex-col gap-1">
                 <Skeleton className="h-5 w-48" />
                 <Skeleton className="h-4 w-32" />
@@ -347,34 +364,26 @@ function AssessPageContent() {
               <MarketDataGridSkeleton />
             </>
           ) : explorerJobData.error ? (
+            <ErrorCard
+              message={explorerJobData.error}
+              onRetry={explorerJobData.refetch}
+            />
+          ) : explorerJobData.data ? (
             <>
-              <OccupationSearch value={selectedOccupation} onChange={setSelectedOccupation} />
-              <ErrorCard
-                message={explorerJobData.error}
-                onRetry={explorerJobData.refetch}
+              <div className="flex flex-col gap-1">
+                <span className="text-lg font-medium text-charcoal">
+                  {selectedOccupation}
+                </span>
+                <span className="text-sm text-gray-500">
+                  {explorerJobData.data.postingsTrend.total.toLocaleString()} recent postings
+                </span>
+              </div>
+              <MarketDataGrid
+                jobPostingsData={explorerJobData.data}
+                outlookData={outlookData}
               />
             </>
-          ) : (
-            <>
-              <OccupationSearch value={selectedOccupation} onChange={setSelectedOccupation} />
-              {explorerJobData.data && (
-                <>
-                  <div className="flex flex-col gap-1">
-                    <span className="text-lg font-medium text-charcoal">
-                      {selectedOccupation}
-                    </span>
-                    <span className="text-sm text-gray-500">
-                      {explorerJobData.data.postingsTrend.total.toLocaleString()} recent postings
-                    </span>
-                  </div>
-                  <MarketDataGrid
-                    jobPostingsData={explorerJobData.data}
-                    outlookData={outlookData}
-                  />
-                </>
-              )}
-            </>
-          )}
+          ) : null}
         </div>
       )}
     </div>

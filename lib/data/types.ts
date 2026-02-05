@@ -124,6 +124,8 @@ export interface Education {
 export interface QuestionnaireProfile {
   name: string;
   currentRole: string;
+  /** Optional target/desired occupation for job exploration (falls back to currentRole) */
+  targetOccupation?: string;
   location: string;
   email: string;
   skills: string[];
