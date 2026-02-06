@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import type { TitleRanking } from "@/lib/data/types";
 
 interface TitlesCardProps {
@@ -6,6 +8,9 @@ interface TitlesCardProps {
 }
 
 export function TitlesCard({ data }: TitlesCardProps) {
+  const [showAll, setShowAll] = useState(false);
+  const displayData = showAll ? data : data.slice(0, 10);
+
   return (
     <Card>
       <CardHeader className="pb-2">
@@ -19,7 +24,7 @@ export function TitlesCard({ data }: TitlesCardProps) {
             <span className="text-right">Postings</span>
             <span className="text-right">Med. Salary</span>
           </div>
-          {data.slice(0, 5).map((title) => (
+          {displayData.map((title) => (
             <div key={title.name} className="grid grid-cols-3 text-sm">
               <span className="text-charcoal truncate">{title.name}</span>
               <span className="text-right text-gray-600">{title.unique_postings.toLocaleString()}</span>
@@ -31,6 +36,16 @@ export function TitlesCard({ data }: TitlesCardProps) {
             </div>
           ))}
         </div>
+        {data.length > 10 && (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="mt-3 w-full text-xs text-gray-500"
+            onClick={() => setShowAll(!showAll)}
+          >
+            {showAll ? "Show less" : `Show all ${data.length} titles`}
+          </Button>
+        )}
       </CardContent>
     </Card>
   );

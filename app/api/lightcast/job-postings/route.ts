@@ -129,9 +129,12 @@ export async function POST(request: NextRequest) {
       ),
     ]);
 
-    // Helper function to filter out "Unclassified" entries from rankings
+    // Helper function to filter out "Unclassified" and "Unknown" entries from rankings
     const filterUnclassified = <T extends { name: string }>(items: T[]): T[] => {
-      return items.filter((item) => item.name.toLowerCase() !== 'unclassified');
+      return items.filter((item) => {
+        const nameLower = item.name.toLowerCase();
+        return nameLower !== 'unclassified' && !nameLower.includes('unknown');
+      });
     };
 
     // Transform to match existing JobPostingsData interface
@@ -144,7 +147,10 @@ export async function POST(request: NextRequest) {
           month: salaryTrendsRes.data.timeseries.day || [],
           values: salaryTrendsRes.data.timeseries.median_salary || [],
         },
-        total: (salaryTrendsRes.data.timeseries.median_salary || []).reduce((sum: number, val: number) => sum + val, 0),
+        total: Math.round(
+          (salaryTrendsRes.data.timeseries.median_salary || []).reduce((sum: number, val: number) => sum + val, 0) /
+          (salaryTrendsRes.data.timeseries.median_salary?.length || 1)
+        ),
       },
 
       // Postings trend
