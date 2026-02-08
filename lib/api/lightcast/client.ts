@@ -79,7 +79,7 @@ class LightcastClient {
     });
 
     if (!response.ok) {
-      const error = (await response.json().catch(() => ({}))) as LightcastError;
+      const error = (await response.json().catch(() => ({}))) as any;
 
       if (response.status === 429) {
         const rateLimitError = new Error('Rate limit exceeded') as Error & { status: number };
@@ -87,13 +87,17 @@ class LightcastClient {
         throw rateLimitError;
       }
 
-      console.error('Lightcast API Error:', {
-        status: response.status,
-        url: url,
-        error: error
-      });
+      // Handle both array and object error formats
+      let errorMessage = response.statusText;
+      if (error.errors) {
+        if (Array.isArray(error.errors) && error.errors.length > 0) {
+          errorMessage = error.errors[0].detail || error.errors[0].title || response.statusText;
+        } else if (error.errors.detail || error.errors.title) {
+          errorMessage = error.errors.detail || error.errors.title;
+        }
+      }
 
-      throw new Error(error.errors?.detail || error.errors?.title || response.statusText);
+      throw new Error(errorMessage);
     }
 
     return response.json() as Promise<T>;
