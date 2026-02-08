@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
           method: 'POST',
           body: JSON.stringify({
             filter: baseFilter,
-            rank: { by: 'unique_postings', limit: 20 },
+            rank: { by: 'unique_postings', limit: 20, extra_metrics: ['median_salary'] },
           }),
         })
       ),
@@ -123,7 +123,7 @@ export async function POST(request: NextRequest) {
           method: 'POST',
           body: JSON.stringify({
             filter: baseFilter,
-            rank: { by: 'unique_postings', limit: 20 },
+            rank: { by: 'unique_postings', limit: 20, extra_metrics: ['median_salary'] },
           }),
         })
       ),
