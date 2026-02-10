@@ -37,12 +37,17 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    // Date range: last 90 days (API maximum)
+    // Date range: last 18 months (using monthly aggregation to bypass 90-day daily limit)
     const endDate = new Date();
     const startDate = new Date();
-    startDate.setDate(endDate.getDate() - 90);
+    startDate.setMonth(endDate.getMonth() - 18);
 
-    const formatDate = (date: Date) => date.toISOString().split('T')[0];
+    // Use YYYY-MM format for monthly data (no 90-day limit), not YYYY-MM-DD (daily, 90-day limit)
+    const formatDate = (date: Date) => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      return `${year}-${month}`;
+    };
 
     // Base filter for all requests
     const baseFilter = {
@@ -101,7 +106,7 @@ export async function POST(request: NextRequest) {
           method: 'POST',
           body: JSON.stringify({
             filter: baseFilter,
-            rank: { by: 'unique_postings', limit: 20 },
+            rank: { by: 'unique_postings', limit: 20, extra_metrics: ['median_salary'] },
           }),
         })
       ),
@@ -123,7 +128,7 @@ export async function POST(request: NextRequest) {
           method: 'POST',
           body: JSON.stringify({
             filter: baseFilter,
-            rank: { by: 'unique_postings', limit: 20 },
+            rank: { by: 'unique_postings', limit: 20, extra_metrics: ['median_salary'] },
           }),
         })
       ),
@@ -144,7 +149,7 @@ export async function POST(request: NextRequest) {
       // Salary trend
       salaryTrend: {
         timeseries: {
-          month: salaryTrendsRes.data.timeseries.day || [],
+          month: salaryTrendsRes.data.timeseries.month || salaryTrendsRes.data.timeseries.day || [],
           values: salaryTrendsRes.data.timeseries.median_salary || [],
         },
         total: Math.round(
@@ -156,7 +161,7 @@ export async function POST(request: NextRequest) {
       // Postings trend
       postingsTrend: {
         timeseries: {
-          month: postingsTrendsRes.data.timeseries.day || [],
+          month: postingsTrendsRes.data.timeseries.month || postingsTrendsRes.data.timeseries.day || [],
           values: postingsTrendsRes.data.timeseries.unique_postings || [],
         },
         total: (postingsTrendsRes.data.timeseries.unique_postings || []).reduce((sum: number, val: number) => sum + val, 0),

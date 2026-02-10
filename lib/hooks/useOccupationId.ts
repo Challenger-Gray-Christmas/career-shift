@@ -9,6 +9,7 @@ interface UseOccupationIdOptions {
 
 interface UseOccupationIdResult {
   id: string | null;
+  name: string | null;
   loading: boolean;
   error: string | null;
 }
@@ -21,6 +22,7 @@ export function useOccupationId({
   enabled = true,
 }: UseOccupationIdOptions): UseOccupationIdResult {
   const [id, setId] = useState<string | null>(null);
+  const [name, setName] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -51,6 +53,7 @@ export function useOccupationId({
 
         if (result.data && result.data.length > 0) {
           setId(result.data[0].id);
+          setName(result.data[0].name);
         } else {
           setError("Occupation not found");
         }
@@ -71,5 +74,5 @@ export function useOccupationId({
     };
   }, [occupationName, enabled]);
 
-  return { id, loading, error };
+  return { id, name, loading, error };
 }

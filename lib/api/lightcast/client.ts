@@ -87,6 +87,13 @@ class LightcastClient {
         throw rateLimitError;
       }
 
+      console.error('Lightcast API Error:', {
+        status: response.status,
+        url: url,
+        error: error,
+        fullError: JSON.stringify(error, null, 2)
+      });
+
       // Handle both array and object error formats
       let errorMessage = response.statusText;
       if (error.errors) {
