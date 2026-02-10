@@ -32,7 +32,10 @@ export function MarketDataGrid({
       <PostingsTrendCard data={jobPostingsData.postingsTrend} />
 
       <RegionsCard data={jobPostingsData.topRegions} />
-      <CompaniesCard data={jobPostingsData.topCompanies} />
+      <CompaniesCard
+        data={jobPostingsData.topCompanies}
+        occupationName={jobPostingsData.occupation}
+      />
 
       <EducationCard data={jobPostingsData.educationRequirements} />
       <TitlesCard data={jobPostingsData.topTitles} />

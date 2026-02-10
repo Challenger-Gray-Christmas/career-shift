@@ -7,3 +7,4 @@ export { useOccupationId } from './useOccupationId';
 export { useJobPostingsData } from './useJobPostingsData';
 export { useCareerPathways } from './useCareerPathways';
 export { useSkillGap } from './useSkillGap';
+export { useCompanyJobs } from './useCompanyJobs';
