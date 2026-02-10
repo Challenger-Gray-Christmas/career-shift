@@ -90,7 +90,8 @@ class LightcastClient {
       console.error('Lightcast API Error:', {
         status: response.status,
         url: url,
-        error: error
+        error: error,
+        fullError: JSON.stringify(error, null, 2)
       });
 
       throw new Error(error.errors?.detail || error.errors?.title || response.statusText);
