@@ -71,19 +71,20 @@ export function PathwayDetail({ job, skillGapData, jobPostingsData, outlookData 
               {skillGapData.source.name} → {skillGapData.destination.name}
             </p>
             {skillGapData.skillGap.map((skill) => {
-              const maxScore = Math.max(...skillGapData.skillGap.map(s => s.importanceScore));
+              const maxScore = Math.max(...skillGapData.skillGap.map(s => s.importanceScore || 0));
+              const score = skill.importanceScore || 0;
               return (
                 <div key={skill.id}>
                   <div className="flex items-center justify-between text-sm">
                     <span className="text-charcoal">{skill.name}</span>
                     <span className="text-gray-500 text-xs">
-                      {skill.importanceScore.toFixed(1)}
+                      {score.toFixed(1)}
                     </span>
                   </div>
                   <div className="mt-1 h-2 w-full rounded-full bg-gray-100">
                     <div
                       className="h-2 rounded-full bg-gold"
-                      style={{ width: `${(skill.importanceScore / maxScore) * 100}%` }}
+                      style={{ width: `${(score / maxScore) * 100}%` }}
                     />
                   </div>
                 </div>

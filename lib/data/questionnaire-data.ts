@@ -3,7 +3,7 @@ import type { QuestionnaireProfile } from "./types";
 // Hardcoded Customer Service Representative profile for demo
 export const demoProfile: QuestionnaireProfile = {
   name: "Sarah Mitchell",
-  currentRole: "Customer Service Representative",
+  currentRole: "Customer Service Representative (General)",
   location: "Phoenix, AZ",
   email: "sarah.mitchell@example.com",
   skills: [
