@@ -13,18 +13,14 @@ import {
 
 interface JobPosting {
   id: string;
-  title: string;
+  title_raw: string;
   company_name: string;
-  city?: string;
-  state?: string;
-  posted_date?: string;
-  url?: string;
-  description?: string;
-  salary?: {
-    min?: number;
-    max?: number;
-    median?: number;
-  };
+  city_name?: string;
+  posted?: string;
+  url?: string | string[];
+  body?: string;
+  expired?: string | null;
+  score?: number;
 }
 
 interface JobPostingsResponse {
@@ -91,19 +87,27 @@ export async function POST(request: NextRequest) {
       ? response.data
       : (response.data?.postings || response.data?.data || []);
 
+    // Filter out expired jobs
+    const now = new Date();
+    const activeJobs = jobs.filter((job: any) => {
+      if (!job.expired) return true; // No expiry date means still active
+      const expiryDate = new Date(job.expired);
+      return expiryDate >= now; // Keep only if not yet expired
+    });
+
     const result = {
       companyName,
       occupationName: occupationName || null,
-      jobs: jobs.map((job: any) => ({
+      jobs: activeJobs.map((job: any) => ({
         id: job.id,
-        title: job.title,
+        title: job.title_raw,
         company: job.company_name,
-        location: [job.city, job.state].filter(Boolean).join(', '),
-        posted_date: job.posted_date,
-        url: job.url,
-        description: job.description,
+        location: job.city_name || '',
+        posted_date: job.posted,
+        url: Array.isArray(job.url) ? job.url[0] : job.url, // Take first URL from array
+        description: job.body,
       })),
-      count: jobs.length,
+      count: activeJobs.length,
     };
 
     // Cache for 10 minutes

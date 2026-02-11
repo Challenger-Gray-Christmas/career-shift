@@ -78,7 +78,7 @@ function AssessPageContent() {
   // API hooks for real-time data
   const currentRoleJobData = useJobPostingsData({
     occupationName: profile.currentRole,
-    enabled: activeTab === "current-role" || activeTab === "career-pathways",
+    enabled: activeTab === "current-role",
   });
 
   const pathwaysData = useCareerPathways({
@@ -102,6 +102,19 @@ function AssessPageContent() {
   const selectedMatchJobData = useJobPostingsData({
     occupationName: selectedMatchOccupationLookup.name || profile.currentRole,
     enabled: activeTab === "career-matches" && selectedItem?.type === "match",
+  });
+
+  // Look up Lightcast occupation name for selected pathway
+  const selectedPathwayOccupationLookup = useOccupationId({
+    occupationName: selectedItem?.type === "pathway" ? selectedItem.data.name : "",
+    enabled: activeTab === "career-pathways" && selectedItem?.type === "pathway",
+  });
+
+  // Fetch job data for selected pathway using exact Lightcast name
+  // Fall back to current role if lookup fails
+  const selectedPathwayJobData = useJobPostingsData({
+    occupationName: selectedPathwayOccupationLookup.name || profile.currentRole,
+    enabled: activeTab === "career-pathways" && selectedItem?.type === "pathway",
   });
 
   const skillGapData = useSkillGap({
@@ -281,7 +294,7 @@ function AssessPageContent() {
 
       {activeTab === "career-pathways" && (
         <div className="space-y-4">
-          {occupationLookup.loading || pathwaysData.loading || currentRoleJobData.loading ? (
+          {occupationLookup.loading || pathwaysData.loading ? (
             <>
               <Card className="p-4">
                 <Skeleton className="h-6 w-48 mb-2" />
@@ -289,9 +302,9 @@ function AssessPageContent() {
               </Card>
               <MasterDetailSkeleton />
             </>
-          ) : occupationLookup.error || pathwaysData.error || currentRoleJobData.error ? (
+          ) : occupationLookup.error || pathwaysData.error ? (
             <ErrorCard
-              message={occupationLookup.error || pathwaysData.error || currentRoleJobData.error || "Unknown error"}
+              message={occupationLookup.error || pathwaysData.error || "Unknown error"}
               onRetry={() => {
                 window.location.reload();
               }}
@@ -332,11 +345,18 @@ function AssessPageContent() {
                 {/* Detail Panel */}
                 <div ref={pathwayDetailRef} className="lg:col-span-3 scroll-mt-4">
                   {selectedItem?.type === "pathway" ? (
-                    currentRoleJobData.data ? (
+                    selectedPathwayOccupationLookup.loading || selectedPathwayJobData.loading ? (
+                      <Card className="p-4">
+                        <div className="space-y-3">
+                          <Skeleton className="h-6 w-48" />
+                          <Skeleton className="h-40" />
+                        </div>
+                      </Card>
+                    ) : selectedPathwayJobData.data ? (
                       <PathwayDetail
                         job={selectedItem.data}
                         skillGapData={skillGapData.data}
-                        jobPostingsData={currentRoleJobData.data}
+                        jobPostingsData={selectedPathwayJobData.data}
                         outlookData={outlookData}
                       />
                     ) : (
