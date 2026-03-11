@@ -145,6 +145,10 @@ export async function POST(request: NextRequest) {
     // Transform to match existing JobPostingsData interface
     const result = {
       occupation: occupationName,
+      dateRange: {
+        start: formatDate(startDate),
+        end: formatDate(endDate),
+      },
 
       // Salary trend
       salaryTrend: {

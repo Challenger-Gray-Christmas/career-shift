@@ -16,7 +16,7 @@ export function EducationCard({ data }: EducationCardProps) {
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium text-charcoal">Education Requirements</CardTitle>
-        <p className="text-xs text-gray-500">Distribution by degree level</p>
+        <p className="text-xs text-gray-500">Distribution by degree level (last 18 months)</p>
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
