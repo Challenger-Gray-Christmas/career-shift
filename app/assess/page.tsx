@@ -415,7 +415,7 @@ function AssessPageContent() {
                   {selectedOccupation}
                 </span>
                 <span className="text-sm text-gray-500">
-                  {explorerJobData.data.postingsTrend.total.toLocaleString()} recent postings
+                  {explorerJobData.data.postingsTrend.total.toLocaleString()} unique postings (last 18 months)
                 </span>
               </div>
               <MarketDataGrid

@@ -14,13 +14,30 @@ interface MarketDataGridProps {
   showOutlook?: boolean;
 }
 
+function formatDateRange(dateRange?: { start: string; end: string }) {
+  if (!dateRange) return null;
+  const format = (ym: string) => {
+    const [year, month] = ym.split('-');
+    const date = new Date(Number(year), Number(month) - 1);
+    return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+  };
+  return `${format(dateRange.start)} - ${format(dateRange.end)}`;
+}
+
 export function MarketDataGrid({
   jobPostingsData,
   outlookData,
   showOutlook = true
 }: MarketDataGridProps) {
+  const dateLabel = formatDateRange(jobPostingsData.dateRange);
+
   return (
     <div className="space-y-6">
+      {dateLabel && (
+        <p className="text-xs text-gray-500 text-center">
+          Job postings data covers {dateLabel}
+        </p>
+      )}
       {showOutlook && (
         <>
           <NationalOutlookCard data={outlookData.national} />
@@ -31,7 +48,7 @@ export function MarketDataGrid({
       <SalaryTrendCard data={jobPostingsData.salaryTrend} />
       <PostingsTrendCard data={jobPostingsData.postingsTrend} />
 
-      <RegionsCard data={jobPostingsData.topRegions} />
+      <RegionsCard data={jobPostingsData.topRegions} occupationName={jobPostingsData.occupation} />
       <CompaniesCard
         data={jobPostingsData.topCompanies}
         occupationName={jobPostingsData.occupation}

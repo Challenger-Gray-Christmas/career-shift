@@ -22,7 +22,7 @@ export function PostingsTrendCard({ data }: PostingsTrendCardProps) {
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium text-charcoal">Job Postings Trend</CardTitle>
         <p className="text-2xl font-bold text-gold">{data.total.toLocaleString()}</p>
-        <p className="text-xs text-gray-500">Total Unique Postings</p>
+        <p className="text-xs text-gray-500">Total Unique Postings (Last 18 Months)</p>
       </CardHeader>
       <CardContent>
         <LineChart data={chartData} valueFormatter={formatPostings} color="#32373c" />

@@ -37,13 +37,13 @@ export function CompaniesCard({ data, occupationName }: CompaniesCardProps) {
     <Card>
       <CardHeader className="pb-2">
         <CardTitle className="text-sm font-medium text-charcoal">Top Companies</CardTitle>
-        <p className="text-xs text-gray-500">Hiring for this role (click to view openings)</p>
+        <p className="text-xs text-gray-500">Hiring for this role in the last 18 months (click to view active openings)</p>
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
           <div className="grid grid-cols-3 text-xs font-medium text-gray-500 border-b pb-2">
             <span>Company</span>
-            <span className="text-right">Postings</span>
+            <span className="text-right">Postings (18mo)</span>
             <span className="text-right">Med. Salary</span>
           </div>
           {displayData.map((company) => (

@@ -37,6 +37,7 @@ export interface TitleRanking {
 
 export interface JobPostingsData {
   occupation: string;
+  dateRange?: { start: string; end: string };
   salaryTrend: SalaryTrend;
   postingsTrend: PostingsTrend;
   topRegions: RegionRanking[];
