@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Search, ChevronDown, ChevronUp, ExternalLink, MapPin, Calendar, Building2, Loader2 } from "lucide-react";
-import { useRegionJobs } from "@/lib/hooks";
+import { useRegionJobs, useRegionSearch } from "@/lib/hooks";
 import type { RegionRanking } from "@/lib/data/types";
 
 interface RegionsCardProps {
@@ -19,16 +19,33 @@ export function RegionsCard({ data, occupationName }: RegionsCardProps) {
   const [expandedRegion, setExpandedRegion] = useState<string | null>(null);
   const regionRefs = useRef<{ [key: string]: HTMLDivElement | null }>({});
 
-  // Filter by search query first
-  const filteredData = searchQuery
+  const preloadedNames = useMemo(() => data.map((r) => r.name), [data]);
+
+  // Remote search for regions beyond the preloaded top 20
+  const {
+    results: remoteResults,
+    loading: remoteLoading,
+    error: remoteError,
+  } = useRegionSearch({
+    query: searchQuery,
+    occupationName,
+    preloadedRegionNames: preloadedNames,
+  });
+
+  // Filter preloaded data by search query (only at 2+ chars, matching remote behavior)
+  const filteredData = searchQuery.length >= 2
     ? data.filter((region) =>
         region.name.toLowerCase().includes(searchQuery.toLowerCase())
       )
     : data;
 
-  // Then apply show/hide toggle
-  const displayData = showAll ? filteredData : filteredData.slice(0, 10);
-  const maxPostings = Math.max(...data.map(d => d.unique_postings));
+  // Show/hide toggle only applies when not actively searching (2+ chars)
+  const isSearching = searchQuery.length >= 2;
+  const displayData = showAll || isSearching ? filteredData : filteredData.slice(0, 10);
+  const maxPostings = Math.max(...data.map(d => d.unique_postings), ...remoteResults.map(d => d.unique_postings), 1);
+
+  // Whether to show the remote results section
+  const showRemoteSection = searchQuery.length >= 2 && (remoteLoading || remoteError || remoteResults.length > 0);
 
   const handleRegionClick = (regionName: string) => {
     const isClosing = expandedRegion === regionName;
@@ -56,15 +73,16 @@ export function RegionsCard({ data, occupationName }: RegionsCardProps) {
           <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
           <Input
             type="text"
-            placeholder="Search regions..."
+            placeholder="Search all regions..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-8 h-8 text-sm"
           />
         </div>
 
+        {/* Preloaded regions */}
         <div className="space-y-0">
-          {displayData.length === 0 ? (
+          {displayData.length === 0 && !showRemoteSection ? (
             <p className="text-sm text-gray-500 text-center py-4">
               No regions found matching &quot;{searchQuery}&quot;
             </p>
@@ -85,6 +103,51 @@ export function RegionsCard({ data, occupationName }: RegionsCardProps) {
             ))
           )}
         </div>
+
+        {/* Remote search results (regions beyond top 20) */}
+        {showRemoteSection && (
+          <div className="mt-3 pt-3 border-t border-gray-200">
+            <p className="text-xs font-medium text-gray-500 mb-2">
+              Other regions matching &quot;{searchQuery}&quot;
+            </p>
+
+            {remoteLoading && (
+              <div className="flex items-center gap-2 py-3 justify-center">
+                <Loader2 className="h-3.5 w-3.5 animate-spin text-gold" />
+                <span className="text-xs text-gray-500">Searching all regions...</span>
+              </div>
+            )}
+
+            {remoteError && (
+              <p className="text-xs text-red-600 py-2">{remoteError}</p>
+            )}
+
+            {!remoteLoading && !remoteError && remoteResults.length > 0 && (
+              <div className="space-y-0">
+                {remoteResults.map((region, index) => (
+                  <RegionRow
+                    key={region.name}
+                    ref={(el) => {
+                      regionRefs.current[region.name] = el;
+                    }}
+                    region={region}
+                    index={displayData.length + index}
+                    maxPostings={maxPostings}
+                    occupationName={occupationName}
+                    isExpanded={expandedRegion === region.name}
+                    onToggle={() => handleRegionClick(region.name)}
+                  />
+                ))}
+              </div>
+            )}
+
+            {!remoteLoading && !remoteError && remoteResults.length === 0 && (
+              <p className="text-xs text-gray-500 py-2">No additional regions found</p>
+            )}
+          </div>
+        )}
+
+        {/* Show all toggle — only when not searching */}
         {!searchQuery && filteredData.length > 10 && (
           <Button
             variant="ghost"
